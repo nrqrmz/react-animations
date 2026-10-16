@@ -17,6 +17,9 @@ const FlightScene = lazy(() => import('@/components/solar/flight-scene'))
 
 const clamp = (v: number) => Math.min(1, Math.max(0, v))
 const N = planets.length
+// Scroll distance between two planets, as a fraction of the screen height. Short on purpose:
+// one comfortable swipe or a few wheel notches should be enough to reach the next planet.
+const STEP = 0.7
 const pad = (n: number) => String(n).padStart(2, '0')
 
 function Hero() {
@@ -201,7 +204,7 @@ export default function LandingPage() {
 
       <Hero />
 
-      <section id="journey" ref={journeyRef} className="relative z-10" style={{ height: `${N * 100}svh` }}>
+      <section id="journey" ref={journeyRef} className="relative z-10" style={{ height: `${(N - 1) * STEP * 100 + 100}svh` }}>
         <div className="sticky top-0 h-svh overflow-hidden">
           <AnimatePresence mode="wait">
             <StopPanel key={planets[index].id} planet={planets[index]} index={index} />

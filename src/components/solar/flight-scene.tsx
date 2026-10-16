@@ -17,8 +17,8 @@ export const SPACING = 50
 // The camera swerves sideways while passing a planet so it never flies through it.
 const swerve = (i: number) => planets[i].radius * (planets[i].ring ? 2.8 : 2) + 5
 const smooth = (x: number) => x * x * (3 - 2 * x)
-// The camera lingers on each planet and only travels during the middle of each step.
-const dwell = (f: number) => smooth(Math.min(1, Math.max(0, (f - 0.2) / 0.6)))
+// The camera settles on each planet and travels during almost the whole step (no dead scroll).
+const dwell = (f: number) => smooth(Math.min(1, Math.max(0, (f - 0.04) / 0.92)))
 
 function Rig() {
   const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera
@@ -30,8 +30,8 @@ function Rig() {
     const s = st.current
     const { width: w, height: h } = size
     const aspect = w / h
-    s.hero = THREE.MathUtils.damp(s.hero, scrollState.hero, 4, dt)
-    s.journey = THREE.MathUtils.damp(s.journey, scrollState.journey, 3.2, dt)
+    s.hero = THREE.MathUtils.damp(s.hero, scrollState.hero, 6, dt)
+    s.journey = THREE.MathUtils.damp(s.journey, scrollState.journey, 6, dt)
     s.intro = THREE.MathUtils.damp(s.intro, 1, 1.1, dt)
 
     const n = planets.length
