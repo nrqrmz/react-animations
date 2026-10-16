@@ -12,6 +12,7 @@ import { SplitText } from '@/components/space/split-text'
 import { planets, type Planet } from '@/data/planets'
 import { useExplored } from '@/hooks/use-explored'
 import { scrollToY } from '@/hooks/use-lenis'
+import { useTourSnap } from '@/hooks/use-tour-snap'
 import { journeyHeightSvh, stopScrollTop } from '@/lib/tour'
 
 // The 3D scene (three.js) is loaded on its own so the page text shows up immediately.
@@ -161,6 +162,7 @@ export default function LandingPage() {
   const { mark, explored, total } = useExplored()
   const { scrollY } = useScroll()
   const { scrollYProgress } = useScroll({ target: journeyRef, offset: ['start start', 'end end'] })
+  useTourSnap(journeyRef, N)
 
   useMotionValueEvent(scrollY, 'change', (v) => {
     scrollState.hero = clamp(v / window.innerHeight)
