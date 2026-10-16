@@ -11,15 +11,14 @@ import { Reveal } from '@/components/space/reveal'
 import { SplitText } from '@/components/space/split-text'
 import { planets, type Planet } from '@/data/planets'
 import { useExplored } from '@/hooks/use-explored'
+import { scrollToY } from '@/hooks/use-lenis'
+import { journeyHeightSvh, stopScrollTop } from '@/lib/tour'
 
 // The 3D scene (three.js) is loaded on its own so the page text shows up immediately.
 const FlightScene = lazy(() => import('@/components/solar/flight-scene'))
 
 const clamp = (v: number) => Math.min(1, Math.max(0, v))
 const N = planets.length
-// Scroll distance between two planets, as a fraction of the screen height. Short on purpose:
-// one comfortable swipe or a few wheel notches should be enough to reach the next planet.
-const STEP = 0.7
 const pad = (n: number) => String(n).padStart(2, '0')
 
 function Hero() {
@@ -189,9 +188,7 @@ export default function LandingPage() {
 
   const jumpTo = (i: number) => {
     const el = journeyRef.current
-    if (!el) return
-    const top = el.offsetTop + (i / (N - 1)) * (el.offsetHeight - window.innerHeight)
-    window.scrollTo({ top, behavior: 'smooth' })
+    if (el) scrollToY(stopScrollTop(el, i), { duration: 0.9 + Math.min(1.2, Math.abs(i - index) * 0.25) })
   }
 
   return (
@@ -204,7 +201,7 @@ export default function LandingPage() {
 
       <Hero />
 
-      <section id="journey" ref={journeyRef} className="relative z-10" style={{ height: `${(N - 1) * STEP * 100 + 100}svh` }}>
+      <section id="journey" ref={journeyRef} className="relative z-10" style={{ height: `${journeyHeightSvh(N)}svh` }}>
         <div className="sticky top-0 h-svh overflow-hidden">
           <AnimatePresence mode="wait">
             <StopPanel key={planets[index].id} planet={planets[index]} index={index} />
