@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom'
 
 import { AnimatedNumber } from '@/components/solar/animated-number'
 import { Orrery } from '@/components/solar/orrery'
+import { PlanetDock } from '@/components/solar/planet-dock'
 import { scrollState } from '@/components/solar/scroll-state'
 import { SpinIndicator } from '@/components/solar/spin-indicator'
 import { Reveal } from '@/components/space/reveal'
@@ -91,7 +92,7 @@ function StopPanel({ planet, index }: { planet: Planet; index: number }) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, y: -24, transition: { duration: 0.25 } }}
-      className="absolute inset-x-0 bottom-0 flex flex-col justify-end px-5 pb-10 sm:px-8 lg:inset-y-0 lg:justify-center lg:pb-0"
+      className="absolute inset-x-0 bottom-0 flex flex-col justify-end px-5 pb-24 sm:px-8 lg:inset-y-0 lg:justify-center lg:pb-16"
     >
       <div className="mx-auto w-full max-w-7xl">
         <div className="max-w-md lg:max-w-lg">
@@ -208,28 +209,7 @@ export default function LandingPage() {
           <AnimatePresence mode="wait">
             <StopPanel key={planets[index].id} planet={planets[index]} index={index} />
           </AnimatePresence>
-          <nav aria-label="Planets" className="absolute top-1/2 right-3 flex -translate-y-1/2 flex-col gap-2.5 sm:right-6">
-            {planets.map((p, i) => (
-              <button
-                key={p.id}
-                type="button"
-                aria-label={`Go to ${p.name}`}
-                aria-current={i === index}
-                onClick={() => jumpTo(i)}
-                className="group flex h-4 w-6 items-center justify-end"
-              >
-                <motion.span
-                  className="block rounded-full"
-                  animate={{
-                    width: i === index ? 20 : 6,
-                    backgroundColor: i === index ? p.accent : 'rgba(255,255,255,0.3)',
-                  }}
-                  style={{ height: 4 }}
-                  transition={{ duration: 0.3 }}
-                />
-              </button>
-            ))}
-          </nav>
+          <PlanetDock planets={planets} index={index} onJump={jumpTo} />
         </div>
       </section>
 
