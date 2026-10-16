@@ -15,7 +15,7 @@ import { useExplored } from '@/hooks/use-explored'
 import { scrollToY } from '@/hooks/use-lenis'
 import { useTourKeys } from '@/hooks/use-tour-keys'
 import { useTourSnap } from '@/hooks/use-tour-snap'
-import { journeyHeightSvh, stopScrollTop } from '@/lib/tour'
+import { holdMagnet, journeyHeightSvh, stopScrollTop } from '@/lib/tour'
 
 // The 3D scene (three.js) is loaded on its own so the page text shows up immediately.
 const FlightScene = lazy(() => import('@/components/solar/flight-scene'))
@@ -192,7 +192,10 @@ export default function LandingPage() {
 
   const jumpTo = (i: number) => {
     const el = journeyRef.current
-    if (el) scrollToY(stopScrollTop(el, i), { duration: 0.9 + Math.min(1.2, Math.abs(i - index) * 0.25) })
+    if (!el) return
+    const duration = 0.9 + Math.min(1.2, Math.abs(i - index) * 0.25)
+    holdMagnet(duration * 1000 + 150) // the magnet waits until the jump has landed
+    scrollToY(stopScrollTop(el, i), { duration })
   }
   useTourKeys(journeyRef, N, jumpTo)
 

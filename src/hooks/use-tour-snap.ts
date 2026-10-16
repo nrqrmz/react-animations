@@ -2,11 +2,11 @@ import { useReducedMotion } from 'motion/react'
 import { useEffect, type RefObject } from 'react'
 
 import { scrollToY } from '@/hooks/use-lenis'
-import { STEP, stopScrollTop } from '@/lib/tour'
+import { holdMagnet, magnetHeldFor, releaseMagnet, STEP, stopScrollTop } from '@/lib/tour'
 
 const IDLE_MS = 140 // how long the scroll must be still before the magnet kicks in
 const PUSH = 0.35 // a push of this fraction of a step in the scroll direction is enough to go to the next planet
-const TAIL = 0.25 // below the last planet, within this fraction of a screen, we still pull back to it
+const TAIL = 0.25 // coming back up from the map, within this fraction of a screen of the last planet, we pull back to it
 
 // "Scroll magnet": when you stop scrolling inside the planet tour, the page settles on the nearest
 // planet (or the next one, if you were moving that way). Outside the tour, scrolling stays free.
@@ -17,15 +17,14 @@ export function useTourSnap(section: RefObject<HTMLElement | null>, stops: numbe
     let timer: ReturnType<typeof setTimeout> | undefined
     let lastY = window.scrollY
     let dir = 0
-    let busyUntil = 0
     let touching = false
 
     const settle = () => {
       const el = section.current
       if (!el || touching) return
-      const now = performance.now()
-      if (now < busyUntil) {
-        timer = setTimeout(settle, busyUntil - now + IDLE_MS)
+      const held = magnetHeldFor()
+      if (held > 0) {
+        timer = setTimeout(settle, held + IDLE_MS)
         return
       }
       const vh = window.innerHeight
@@ -34,6 +33,7 @@ export function useTourSnap(section: RefObject<HTMLElement | null>, stops: numbe
       const points = [0, ...Array.from({ length: stops }, (_, i) => stopScrollTop(el, i))]
       const last = points[points.length - 1]
       if (y > last + TAIL * vh || y < 0) return // free scrolling below the tour
+      if (y > last + 4 && dir > 0) return // heading on to the system map: do not pull back
 
       let lo = 0
       while (lo < points.length - 2 && y >= points[lo + 1]) lo++
@@ -43,7 +43,7 @@ export function useTourSnap(section: RefObject<HTMLElement | null>, stops: numbe
       const distance = Math.abs(target - y)
       if (distance < 2) return
       const duration = 0.45 + 0.55 * Math.min(1, distance / (STEP * vh))
-      busyUntil = performance.now() + duration * 1000 + 60
+      holdMagnet(duration * 1000 + 60)
       scrollToY(target, { duration, immediate: Boolean(reduce) })
     }
 
@@ -55,12 +55,10 @@ export function useTourSnap(section: RefObject<HTMLElement | null>, stops: numbe
       timer = setTimeout(settle, IDLE_MS)
     }
     // Any new input from the person takes over from a magnet animation in progress.
-    const onInput = () => {
-      busyUntil = 0
-    }
+    const onInput = () => releaseMagnet()
     const onTouchStart = () => {
       touching = true
-      busyUntil = 0
+      releaseMagnet()
     }
     const onTouchEnd = () => {
       touching = false

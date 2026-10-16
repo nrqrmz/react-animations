@@ -18,3 +18,14 @@ export function stopPosition(section: HTMLElement) {
   const top = section.getBoundingClientRect().top + window.scrollY
   return (window.scrollY - top) / (STEP * window.innerHeight)
 }
+
+// While a jump or a magnet pull is animating, the scroll magnet must not start another one.
+let heldUntil = 0
+export const holdMagnet = (ms: number) => {
+  heldUntil = performance.now() + ms
+}
+export const releaseMagnet = () => {
+  heldUntil = 0
+}
+// Milliseconds left before the magnet may act again (0 when free).
+export const magnetHeldFor = () => Math.max(0, heldUntil - performance.now())
