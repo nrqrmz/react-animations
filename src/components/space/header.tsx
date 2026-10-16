@@ -1,109 +1,74 @@
-import { Menu, Rocket, X } from 'lucide-react'
-import { AnimatePresence, motion, useMotionValueEvent, useScroll } from 'motion/react'
-import { useEffect, useState } from 'react'
-import { Link, NavLink, useLocation } from 'react-router-dom'
+import { motion, useMotionValueEvent, useScroll } from 'motion/react'
+import { useState } from 'react'
+import { Link, NavLink } from 'react-router-dom'
 
-import { Button } from '@/components/ui/button'
-import { useTrip } from '@/hooks/use-trip'
+import { useExplored } from '@/hooks/use-explored'
 import { cn } from '@/lib/utils'
 
-const links = [
-  { to: '/', label: 'Home', end: true },
-  { to: '/#planets', label: 'Destinations' },
-  { to: '/trip', label: 'My trip' },
-]
-
-// Sticky header: hides when scrolling down, comes back when scrolling up. Drawer menu on mobile.
+// Minimal header: wordmark, navigation and your exploration progress. Hides while scrolling down.
 export function Header() {
   const { scrollY } = useScroll()
   const [hidden, setHidden] = useState(false)
-  const [scrolled, setScrolled] = useState(false)
-  const [open, setOpen] = useState(false)
-  const { itinerary } = useTrip()
-  const { pathname } = useLocation()
+  const [solid, setSolid] = useState(false)
+  const { explored, total } = useExplored()
 
-  useMotionValueEvent(scrollY, 'change', (latest) => {
-    const prev = scrollY.getPrevious() ?? 0
-    setHidden(latest > prev && latest > 120 && !open)
-    setScrolled(latest > 20)
+  useMotionValueEvent(scrollY, 'change', (v) => {
+    setHidden(v > (scrollY.getPrevious() ?? 0) && v > 160)
+    setSolid(v > 40)
   })
 
-  // Close the drawer whenever the route changes.
-  useEffect(() => setOpen(false), [pathname])
+  const pct = explored.length / total
+  const C = 2 * Math.PI * 9
 
   return (
-    <>
-      <motion.header
-        animate={{ y: hidden ? '-100%' : 0 }}
-        transition={{ duration: 0.3, ease: 'easeInOut' }}
-        className={cn(
-          'fixed inset-x-0 top-0 z-40 transition-colors',
-          scrolled ? 'border-b border-white/10 bg-black/40 backdrop-blur-lg' : 'bg-transparent',
-        )}
-      >
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <Link to="/" className="flex items-center gap-2 text-lg font-semibold tracking-wide">
-            <Rocket className="size-5 text-amber-400" />
-            ORBIT
+    <motion.header
+      animate={{ y: hidden ? '-100%' : 0 }}
+      transition={{ duration: 0.3, ease: 'easeInOut' }}
+      className={cn(
+        'fixed inset-x-0 top-0 z-40 transition-colors duration-300',
+        solid ? 'bg-black/60 backdrop-blur-xl' : 'bg-transparent',
+      )}
+    >
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 sm:px-8">
+        <Link to="/" className="text-sm font-medium tracking-[0.32em] text-white uppercase">
+          Solaris
+        </Link>
+        <nav className="flex items-center gap-6 sm:gap-8">
+          <NavLink to="/" end className="hidden text-sm text-white/60 transition-colors hover:text-white sm:block">
+            Tour
+          </NavLink>
+          <Link
+            to="/#system"
+            className="hidden text-sm text-white/60 transition-colors hover:text-white sm:block"
+          >
+            System map
           </Link>
-
-          <nav className="hidden items-center gap-8 md:flex">
-            {links.map((l) => (
-              <NavLink
-                key={l.to}
-                to={l.to}
-                end={l.end}
-                className="text-sm text-white/70 transition-colors hover:text-white"
-              >
-                {l.label}
-              </NavLink>
-            ))}
-            <Button asChild size="sm" className="bg-amber-400 text-black hover:bg-amber-300">
-              <Link to="/trip">
-                Book trip{itinerary.length > 0 && ` (${itinerary.length})`}
-              </Link>
-            </Button>
-          </nav>
-
-          <Button
-            variant="ghost"
-            size="icon"
-            className="md:hidden"
-            aria-label={open ? 'Close menu' : 'Open menu'}
-            onClick={() => setOpen((v) => !v)}
+          <div
+            className="flex items-center gap-2.5"
+            title={`${explored.length} of ${total} explored`}
+            aria-label={`${explored.length} of ${total} explored`}
           >
-            {open ? <X /> : <Menu />}
-          </Button>
-        </div>
-      </motion.header>
-
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            key="drawer"
-            className="fixed inset-0 z-30 flex flex-col justify-center gap-6 bg-[#05060f]/95 px-8 backdrop-blur-xl md:hidden"
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ type: 'spring', stiffness: 260, damping: 30 }}
-          >
-            {[...links, { to: '/trip', label: `Book trip${itinerary.length ? ` (${itinerary.length})` : ''}` }].map(
-              (l, i) => (
-                <motion.div
-                  key={l.label}
-                  initial={{ opacity: 0, x: 40 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.1 + i * 0.07 }}
-                >
-                  <Link to={l.to} className="text-3xl font-semibold text-white">
-                    {l.label}
-                  </Link>
-                </motion.div>
-              ),
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
+            <svg viewBox="0 0 24 24" className="size-6 -rotate-90" aria-hidden>
+              <circle cx="12" cy="12" r="9" fill="none" stroke="white" strokeOpacity="0.15" strokeWidth="2" />
+              <motion.circle
+                cx="12"
+                cy="12"
+                r="9"
+                fill="none"
+                stroke="white"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeDasharray={C}
+                animate={{ strokeDashoffset: C * (1 - pct) }}
+                transition={{ duration: 0.8, ease: 'easeOut' }}
+              />
+            </svg>
+            <span className="font-mono text-xs text-white/70 tabular-nums">
+              {explored.length}/{total}
+            </span>
+          </div>
+        </nav>
+      </div>
+    </motion.header>
   )
 }

@@ -1,24 +1,22 @@
-import { motion } from 'motion/react'
+import { ArrowRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
-import { Button } from '@/components/ui/button'
+import { SplitText } from '@/components/space/split-text'
 
 export default function NotFoundPage() {
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center px-4 text-center">
-      <motion.div
-        animate={{ rotate: [0, 12, -12, 0], y: [0, -12, 0] }}
-        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-        className="text-7xl"
-        aria-hidden
+    <div className="relative z-10 flex min-h-svh flex-col items-center justify-center px-5 text-center">
+      <p className="font-mono text-xs tracking-[0.3em] text-white/40 uppercase">Error 404</p>
+      <h1 className="mt-4 text-5xl font-light tracking-tight sm:text-7xl">
+        <SplitText text="Nothing out here" />
+      </h1>
+      <p className="mt-4 text-white/50">This page is not on any orbit we know.</p>
+      <Link
+        to="/"
+        className="group mt-10 inline-flex h-12 items-center gap-3 rounded-full bg-white px-7 text-sm font-medium text-black transition-transform hover:scale-105"
       >
-        🧑‍🚀
-      </motion.div>
-      <h1 className="mt-6 text-4xl font-bold sm:text-5xl">Lost in space</h1>
-      <p className="mt-3 text-white/60">This page drifted away from our orbit.</p>
-      <Button asChild className="mt-8 bg-amber-400 text-black hover:bg-amber-300">
-        <Link to="/">Back to Earth</Link>
-      </Button>
+        Back to the tour <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
+      </Link>
     </div>
   )
 }
