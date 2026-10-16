@@ -1,35 +1,74 @@
-import { Link, Outlet, Route, Routes } from 'react-router-dom'
+import { AnimatePresence, motion } from 'motion/react'
+import { useEffect } from 'react'
+import { Outlet, Route, Routes, useLocation } from 'react-router-dom'
 
-import HomePage from '@/pages/HomePage'
-import ItemPage from '@/pages/ItemPage'
+import { Header } from '@/components/space/header'
+import { Starfield } from '@/components/space/starfield'
+import { TripProvider } from '@/hooks/use-trip'
+import { useLenis } from '@/hooks/use-lenis'
+import LandingPage from '@/pages/LandingPage'
 import NotFoundPage from '@/pages/NotFoundPage'
+import PlanetPage from '@/pages/PlanetPage'
+import TripPage from '@/pages/TripPage'
+
+// Scrolls to the #hash target (or to the top) after each navigation.
+function ScrollManager() {
+  const { pathname, hash } = useLocation()
+  useEffect(() => {
+    if (hash) {
+      // Wait a frame so the new page has rendered.
+      const t = setTimeout(() => document.querySelector(hash)?.scrollIntoView({ behavior: 'smooth' }), 400)
+      return () => clearTimeout(t)
+    }
+    window.scrollTo(0, 0)
+  }, [pathname, hash])
+  return null
+}
 
 function Layout() {
+  useLenis()
   return (
-    <div className="min-h-screen">
-      <header className="border-b">
-        <div className="mx-auto flex h-14 max-w-4xl items-center px-4">
-          <Link to="/" className="font-semibold">
-            My App
-          </Link>
-        </div>
-      </header>
-      <main className="mx-auto max-w-4xl px-4 py-8">
+    <div className="dark min-h-svh text-white">
+      <Starfield />
+      <Header />
+      <ScrollManager />
+      <main>
         <Outlet />
       </main>
     </div>
   )
 }
 
-// All routes live here. The pages below are examples: replace them with your own.
+function AnimatedRoutes() {
+  const location = useLocation()
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      <motion.div
+        key={location.pathname}
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -24 }}
+        transition={{ duration: 0.35 }}
+      >
+        <Routes location={location}>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/planets/:id" element={<PlanetPage />} />
+          <Route path="/trip" element={<TripPage />} />
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </motion.div>
+    </AnimatePresence>
+  )
+}
+
 export default function App() {
   return (
-    <Routes>
-      <Route element={<Layout />}>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/items/:id" element={<ItemPage />} />
-        <Route path="*" element={<NotFoundPage />} />
-      </Route>
-    </Routes>
+    <TripProvider>
+      <Routes>
+        <Route element={<Layout />}>
+          <Route path="*" element={<AnimatedRoutes />} />
+        </Route>
+      </Routes>
+    </TripProvider>
   )
 }
