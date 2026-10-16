@@ -5,9 +5,11 @@ import * as THREE from 'three'
 
 import { planets } from '@/data/planets'
 
+import { usesSoftwareRendering } from './bake'
 import { Dust } from './dust'
 import { BASE_FOV, fitDistance, heroLayout, stopLayout, viewOffset } from './layout'
 import { PlanetBody } from './planet-body'
+import { QualityGovernor } from './quality-governor'
 import { scrollState } from './scroll-state'
 
 export const SPACING = 50
@@ -69,13 +71,14 @@ function Rig() {
 export default function FlightScene({ active }: { active: boolean }) {
   return (
     <Canvas
-      dpr={[1, 1.75]}
+      dpr={[1, 1.25]}
       frameloop={active ? 'always' : 'never'}
       camera={{ fov: BASE_FOV, near: 0.1, far: 900, position: [0, 0, 60] }}
-      gl={{ antialias: true, powerPreference: 'high-performance' }}
+      gl={{ antialias: !usesSoftwareRendering(), powerPreference: 'high-performance' }}
       style={{ position: 'absolute', inset: 0 }}
     >
       <color attach="background" args={['#000000']} />
+      <QualityGovernor />
       <Rig />
       <SceneContent />
     </Canvas>
@@ -84,7 +87,7 @@ export default function FlightScene({ active }: { active: boolean }) {
 
 function SceneContent() {
   const small = useThree((s) => s.size.width < 768)
-  const segments = small ? 72 : 128
+  const segments = small ? 56 : 96
   const groups = useRef<(THREE.Group | null)[]>([])
 
   // Only planets near the current stop are drawn: the title screen shows just the Sun.

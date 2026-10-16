@@ -6,9 +6,11 @@ import * as THREE from 'three'
 
 import type { Planet } from '@/data/planets'
 
+import { usesSoftwareRendering } from './bake'
 import { Dust } from './dust'
 import { BASE_FOV, fitDistance, stopLayout, viewOffset } from './layout'
 import { PlanetBody } from './planet-body'
+import { QualityGovernor } from './quality-governor'
 
 function Rig({ planet }: { planet: Planet }) {
   const size = useThree((s) => s.size)
@@ -34,15 +36,16 @@ export default function PlanetStage({ planet }: { planet: Planet }) {
   const reduce = useReducedMotion()
   return (
     <Canvas
-      dpr={[1, 1.75]}
+      dpr={[1, 1.25]}
       camera={{ fov: BASE_FOV, near: 0.1, far: 900, position: [0, 0.2, 60] }}
-      gl={{ antialias: true }}
+      gl={{ antialias: !usesSoftwareRendering(), powerPreference: 'high-performance' }}
       style={{ position: 'absolute', inset: 0 }}
     >
       <color attach="background" args={['#000000']} />
-      <Dust count={1800} radius={160} sphere />
+      <QualityGovernor />
+      <Dust count={1500} radius={160} sphere />
       <Rig planet={planet} />
-      <PlanetBody key={planet.id} planet={planet} segments={160} speed={reduce ? 0.4 : 1} />
+      <PlanetBody key={planet.id} planet={planet} segments={128} speed={reduce ? 0.4 : 1} />
       <OrbitControls
         enableZoom={false}
         enablePan={false}
