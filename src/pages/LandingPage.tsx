@@ -13,6 +13,7 @@ import { SplitText } from '@/components/space/split-text'
 import { planets, type Planet } from '@/data/planets'
 import { useExplored } from '@/hooks/use-explored'
 import { scrollToY } from '@/hooks/use-lenis'
+import { useLocalStorage } from '@/hooks/use-local-storage'
 import { useTourKeys } from '@/hooks/use-tour-keys'
 import { useTourSnap } from '@/hooks/use-tour-snap'
 import { holdMagnet, journeyHeightSvh, stopScrollTop } from '@/lib/tour'
@@ -83,6 +84,30 @@ function Stat({ label, children }: { label: string; children: React.ReactNode })
       <p className="font-mono text-[10px] tracking-[0.18em] text-white/40 uppercase">{label}</p>
       <p className="mt-1 text-base tabular-nums sm:text-xl">{children}</p>
     </div>
+  )
+}
+
+// One-time nudge, shown on the first planet until the person moves on (remembered in localStorage).
+function TourHint({ show }: { show: boolean }) {
+  return (
+    <AnimatePresence>
+      {show && (
+        <motion.p
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0 }}
+          transition={{ delay: 1.2 }}
+          className="pointer-events-none absolute top-20 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 font-mono text-[11px] tracking-[0.2em] whitespace-nowrap text-white/60 uppercase lg:top-auto lg:bottom-20"
+        >
+          <motion.span aria-hidden animate={{ y: [0, 4, 0] }} transition={{ duration: 1.4, repeat: Infinity }}>
+            <span className="lg:hidden">↑</span>
+            <span className="hidden lg:inline">↓</span>
+          </motion.span>
+          <span className="lg:hidden">Swipe up for the next planet</span>
+          <span className="hidden lg:inline">Scroll or press ↓ for the next planet</span>
+        </motion.p>
+      )}
+    </AnimatePresence>
   )
 }
 
@@ -162,6 +187,7 @@ export default function LandingPage() {
   const [running, setRunning] = useState(true)
   const [index, setIndex] = useState(0)
   const { mark, explored, total } = useExplored()
+  const [hintSeen, setHintSeen] = useLocalStorage('solaris:tour-hint', false)
   const { scrollY } = useScroll()
   const { scrollYProgress } = useScroll({ target: journeyRef, offset: ['start start', 'end end'] })
   useTourSnap(journeyRef, N)
@@ -180,7 +206,8 @@ export default function LandingPage() {
   // A planet counts as explored once you have stopped at it.
   useEffect(() => {
     if (inJourney.current) mark(planets[index].id)
-  }, [index, mark])
+    if (index > 0) setHintSeen(true)
+  }, [index, mark, setHintSeen])
 
   useEffect(() => {
     scrollState.hero = clamp(window.scrollY / window.innerHeight)
@@ -214,6 +241,7 @@ export default function LandingPage() {
           <AnimatePresence mode="wait">
             <StopPanel key={planets[index].id} planet={planets[index]} index={index} />
           </AnimatePresence>
+          <TourHint show={index === 0 && !hintSeen} />
           <PlanetDock planets={planets} index={index} onJump={jumpTo} />
         </div>
       </section>

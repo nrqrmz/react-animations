@@ -7,6 +7,8 @@ let current: Lenis | null = null
 
 // Scrolls the page to `y` (px). Uses the smooth-scroll engine when it is running, the browser otherwise.
 export function scrollToY(y: number, { duration = 1.1, immediate = false } = {}) {
+  // People who prefer reduced motion get an instant jump instead of a long glide.
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) immediate = true
   if (current) {
     current.scrollTo(y, { duration, immediate, easing: (t) => 1 - Math.pow(1 - t, 3) })
   } else {
