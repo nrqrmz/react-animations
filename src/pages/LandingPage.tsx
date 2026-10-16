@@ -13,6 +13,7 @@ import { SplitText } from '@/components/space/split-text'
 import { planets, type Planet } from '@/data/planets'
 import { useExplored } from '@/hooks/use-explored'
 import { scrollToY } from '@/hooks/use-lenis'
+import { useTourKeys } from '@/hooks/use-tour-keys'
 import { useTourSnap } from '@/hooks/use-tour-snap'
 import { journeyHeightSvh, stopScrollTop } from '@/lib/tour'
 
@@ -193,6 +194,7 @@ export default function LandingPage() {
     const el = journeyRef.current
     if (el) scrollToY(stopScrollTop(el, i), { duration: 0.9 + Math.min(1.2, Math.abs(i - index) * 0.25) })
   }
+  useTourKeys(journeyRef, N, jumpTo)
 
   return (
     <>
